@@ -677,6 +677,13 @@
   .template-save-btn { flex: 1; background: var(--green); color: #000; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; }
   .template-reset-btn { background: rgba(255,255,255,0.07); color: var(--text2); border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
   .template-status { font-size: 12px; text-align: center; margin-top: 8px; min-height: 18px; }
+  .tmpl-drag-handle { cursor: grab; color: var(--text3); padding: 0 6px 0 2px; flex-shrink: 0; user-select: none; display: flex; align-items: center; }
+  .tmpl-drag-handle:active { cursor: grabbing; }
+  .tmpl-drag-handle svg { pointer-events: none; }
+  .template-section-card.tmpl-drag-over { outline: 2px dashed var(--green); outline-offset: -2px; opacity: 0.85; }
+  .template-item-row.tmpl-drag-over { background: rgba(29,185,84,0.08); outline: 1.5px dashed var(--green); outline-offset: -1px; }
+  .template-section-card.tmpl-dragging { opacity: 0.4; }
+  .template-item-row.tmpl-dragging { opacity: 0.4; }
 
   /* FIREBASE SYNC */
   .sync-indicator {
@@ -5337,8 +5344,14 @@ function renderTemplateEditor() {
   const sectionsHtml = _editingTemplate.sections.length === 0
     ? `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No sections yet — add one below.</div>`
     : _editingTemplate.sections.map(section => `
-    <div class="template-section-card">
-      <div class="template-section-header" style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px 14px">
+    <div class="template-section-card" id="tsec-${section.id}" draggable="true"
+      ondragstart="tmplSecDragStart(event,'${section.id}')"
+      ondragover="tmplSecDragOver(event,'${section.id}')"
+      ondrop="tmplSecDrop(event,'${section.id}')"
+      ondragleave="tmplSecDragLeave(event)"
+      ondragend="tmplDragEnd()">
+      <div class="template-section-header" style="display:flex;align-items:center;gap:8px;padding:8px 10px 8px 6px">
+        <span class="tmpl-drag-handle" title="Drag to reorder section">${ic('menu',16,'var(--text3)')}</span>
         <input class="template-section-title-input"
           id="sec-title-${section.id}"
           value="${escHtml(section.title)}"
@@ -5346,11 +5359,18 @@ function renderTemplateEditor() {
           onfocus="this.style.borderBottomColor='var(--green)'"
           onblur="this.style.borderBottomColor='transparent';renameSectionInTemplate('${section.id}',this.value)"
           onkeydown="if(event.key==='Enter')this.blur()"
+          ondragstart="event.stopPropagation()"
           placeholder="Section name">
         <button class="template-remove-btn" onclick="removeSectionFromTemplate('${section.id}')" title="Remove section" style="border-radius:6px;width:28px;height:28px;font-size:13px">${ic('trash',13,'#e53935')}</button>
       </div>
       ${section.items.map(item => `
-        <div class="template-item-row" id="trow-${section.id}-${item.id}">
+        <div class="template-item-row" id="trow-${section.id}-${item.id}" draggable="true"
+          ondragstart="tmplItemDragStart(event,'${section.id}','${item.id}')"
+          ondragover="tmplItemDragOver(event,'${section.id}','${item.id}')"
+          ondrop="tmplItemDrop(event,'${section.id}','${item.id}')"
+          ondragleave="tmplItemDragLeave(event)"
+          ondragend="tmplDragEnd()">
+          <span class="tmpl-drag-handle" title="Drag to reorder item">${ic('menu',14,'var(--text3)')}</span>
           <span class="template-item-label">${escHtml(item.label)}</span>
           <button class="template-remove-btn" onclick="removeTemplateItem('${section.id}','${item.id}')" title="Remove item">×</button>
         </div>
@@ -5448,6 +5468,93 @@ function resetAdminTemplate() {
   renderTemplateEditor();
   const status = document.getElementById('tmpl-status');
   if (status) { status.textContent = 'Reset to default — click Save to apply.'; status.style.color = 'var(--text3)'; }
+}
+
+// ── TEMPLATE DRAG-AND-DROP ──
+window._tmplDrag = null;
+
+function tmplSecDragStart(e, sectionId) {
+  window._tmplDrag = { type: 'section', sectionId };
+  e.dataTransfer.effectAllowed = 'move';
+  const el = document.getElementById('tsec-' + sectionId);
+  if (el) setTimeout(() => el.classList.add('tmpl-dragging'), 0);
+}
+
+function tmplSecDragOver(e, sectionId) {
+  if (!window._tmplDrag || window._tmplDrag.type !== 'section') return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.template-section-card.tmpl-drag-over').forEach(el => el.classList.remove('tmpl-drag-over'));
+  const el = document.getElementById('tsec-' + sectionId);
+  if (el) el.classList.add('tmpl-drag-over');
+}
+
+function tmplSecDragLeave(e) {
+  const card = e.currentTarget;
+  if (!card.contains(e.relatedTarget)) card.classList.remove('tmpl-drag-over');
+}
+
+function tmplSecDrop(e, targetSectionId) {
+  e.preventDefault();
+  if (!window._tmplDrag || window._tmplDrag.type !== 'section') return;
+  const fromId = window._tmplDrag.sectionId;
+  window._tmplDrag = null;
+  if (fromId === targetSectionId) { renderTemplateEditor(); return; }
+  const secs = _editingTemplate.sections;
+  const fromIdx = secs.findIndex(s => s.id === fromId);
+  const toIdx = secs.findIndex(s => s.id === targetSectionId);
+  if (fromIdx === -1 || toIdx === -1) { renderTemplateEditor(); return; }
+  const [moved] = secs.splice(fromIdx, 1);
+  secs.splice(toIdx, 0, moved);
+  renderTemplateEditor();
+}
+
+function tmplItemDragStart(e, sectionId, itemId) {
+  window._tmplDrag = { type: 'item', sectionId, itemId };
+  e.dataTransfer.effectAllowed = 'move';
+  e.stopPropagation();
+  const el = document.getElementById('trow-' + sectionId + '-' + itemId);
+  if (el) setTimeout(() => el.classList.add('tmpl-dragging'), 0);
+}
+
+function tmplItemDragOver(e, sectionId, itemId) {
+  if (!window._tmplDrag || window._tmplDrag.type !== 'item') return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.template-item-row.tmpl-drag-over').forEach(el => el.classList.remove('tmpl-drag-over'));
+  const el = document.getElementById('trow-' + sectionId + '-' + itemId);
+  if (el) el.classList.add('tmpl-drag-over');
+}
+
+function tmplItemDragLeave(e) {
+  const row = e.currentTarget;
+  if (!row.contains(e.relatedTarget)) row.classList.remove('tmpl-drag-over');
+}
+
+function tmplItemDrop(e, sectionId, targetItemId) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!window._tmplDrag || window._tmplDrag.type !== 'item') return;
+  const { sectionId: fromSectionId, itemId: fromItemId } = window._tmplDrag;
+  window._tmplDrag = null;
+  if (fromSectionId !== sectionId || fromItemId === targetItemId) { renderTemplateEditor(); return; }
+  const section = _editingTemplate.sections.find(s => s.id === sectionId);
+  if (!section) return;
+  const fromIdx = section.items.findIndex(it => it.id === fromItemId);
+  const toIdx = section.items.findIndex(it => it.id === targetItemId);
+  if (fromIdx === -1 || toIdx === -1) { renderTemplateEditor(); return; }
+  const [moved] = section.items.splice(fromIdx, 1);
+  section.items.splice(toIdx, 0, moved);
+  renderTemplateEditor();
+}
+
+function tmplDragEnd() {
+  window._tmplDrag = null;
+  document.querySelectorAll('.tmpl-drag-over,.tmpl-dragging').forEach(el => {
+    el.classList.remove('tmpl-drag-over');
+    el.classList.remove('tmpl-dragging');
+  });
 }
 
 function setSyncStatus(status) {
@@ -6371,6 +6478,10 @@ function renderAdminContent() {
       ${ic('users',20,'currentColor')}
       <span>Users</span>
     </button>
+    <button class="admin-tab-btn ${_adminTab==='templates'?'active':''}" onclick="switchAdminTab('templates')" style="position:relative">
+      ${ic('clipboard',20,'currentColor')}
+      <span>Templates</span>
+    </button>
     <button class="admin-tab-btn ${_adminTab==='settings'?'active':''}" onclick="switchAdminTab('settings')" style="position:relative">
       ${ic('settings',20,'currentColor')}
       <span>Settings</span>
@@ -6388,6 +6499,8 @@ function renderAdminContent() {
     html += _renderPartsTab();
   } else if (_adminTab === 'users') {
     html += _renderUsersTab();
+  } else if (_adminTab === 'templates') {
+    html += _renderTemplatesTab();
   } else if (_adminTab === 'settings') {
     html += _renderSettingsTab();
   }
@@ -6400,8 +6513,7 @@ function renderAdminContent() {
   if (_adminTab === 'defects' && window._fbDb) _loadDefectsAsync();
   if (_adminTab === 'parts' && window._fbDb) _loadPartsAsync();
   if (_adminTab === 'users' && window._fbDb) _loadAdminUsersAsync();
-  if (_adminTab === 'settings') {
-    _loadAdminAuditLogAsync();
+  if (_adminTab === 'templates') {
     if (_editingTemplate) {
       renderTemplateEditor();
       const actions = document.getElementById('tmpl-actions');
@@ -6411,6 +6523,9 @@ function renderAdminContent() {
       if (teamSel) teamSel.value = _editingTemplate.team;
       if (truckSel) truckSel.value = _editingTemplate.truckType;
     }
+  }
+  if (_adminTab === 'settings') {
+    _loadAdminAuditLogAsync();
   }
 }
 
@@ -6852,38 +6967,6 @@ function _renderSettingsTab() {
     </div>
   </div>
 
-  <!-- INSPECTION TEMPLATES -->
-  <div class="section-label" style="padding:0 0 8px">${ic('clipboard',13,'var(--text3)')} Inspection Templates</div>
-  <div class="card" style="margin-bottom:16px">
-    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Customise the checklist items for each team and truck type.</div>
-    <div class="template-selectors">
-      <select id="tmpl-team-select">
-        <option value="">Select team…</option>
-        <option value="electrical">Automation Team</option>
-        <option value="fitter">Fitter Team</option>
-        <option value="pdi">PDI Team</option>
-        <option value="hydraulics">Hydraulics Team</option>
-      </select>
-      <select id="tmpl-truck-select">
-        <option value="">Select truck type…</option>
-        <option value="Standard Warrior">Standard Warrior</option>
-        <option value="Danish Warrior">Danish Warrior</option>
-        <option value="European Warrior">European Warrior</option>
-        <option value="Super Warrior">Super Warrior</option>
-        <option value="New Zealand Warrior">New Zealand Warrior</option>
-      </select>
-      <button id="tmpl-load-btn" class="btn" style="padding:10px 16px;font-size:13px;font-weight:700;border-radius:10px;white-space:nowrap" onclick="loadAdminTemplate()">Load</button>
-    </div>
-    <div id="template-editor-body"></div>
-    <div id="tmpl-actions" style="display:none">
-      <div class="template-actions">
-        <button id="tmpl-save-btn" class="template-save-btn" onclick="saveAdminTemplate()">Save Template</button>
-        <button class="template-reset-btn" onclick="resetAdminTemplate()">Reset to Default</button>
-      </div>
-      <div class="template-status" id="tmpl-status"></div>
-    </div>
-  </div>
-
   <!-- DATA MANAGEMENT -->
   <div class="section-label" style="padding:0 0 8px">${ic('layers',13,'var(--text3)')} Data Management</div>
 
@@ -6944,6 +7027,41 @@ function _renderSettingsTab() {
   <div class="section-label" style="padding:8px 0">${ic('activity',13,'var(--text3)')} Audit Log</div>
   <div class="card" style="padding:0;overflow:hidden" id="admin-audit-log">
     <div style="font-size:13px;color:var(--text3);padding:14px 16px">${window._fbDb ? 'Loading audit log...' : 'Connect Firebase to see audit log'}</div>
+  </div>`;
+}
+
+function _renderTemplatesTab() {
+  const teams = getTeams();
+  const teamOptions = [
+    `<option value="">Select team…</option>`,
+    ...teams.map(t => `<option value="${escHtml(t.id)}">${escHtml(t.label)}</option>`)
+  ].join('');
+  return `
+  <div class="section-label" style="padding:0 0 8px">${ic('clipboard',13,'var(--text3)')} Inspection Templates</div>
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Customise checklist sections and items for each team and truck type. Drag the <span style="color:var(--text2);font-weight:600">⠿</span> handle to reorder.</div>
+    <div class="template-selectors">
+      <select id="tmpl-team-select">
+        ${teamOptions}
+      </select>
+      <select id="tmpl-truck-select">
+        <option value="">Select truck type…</option>
+        <option value="Standard Warrior">Standard Warrior</option>
+        <option value="Danish Warrior">Danish Warrior</option>
+        <option value="European Warrior">European Warrior</option>
+        <option value="Super Warrior">Super Warrior</option>
+        <option value="New Zealand Warrior">New Zealand Warrior</option>
+      </select>
+      <button id="tmpl-load-btn" class="btn" style="padding:10px 16px;font-size:13px;font-weight:700;border-radius:10px;white-space:nowrap" onclick="loadAdminTemplate()">Load</button>
+    </div>
+    <div id="template-editor-body"></div>
+    <div id="tmpl-actions" style="display:none">
+      <div class="template-actions">
+        <button id="tmpl-save-btn" class="template-save-btn" onclick="saveAdminTemplate()">Save Template</button>
+        <button class="template-reset-btn" onclick="resetAdminTemplate()">Reset to Default</button>
+      </div>
+      <div class="template-status" id="tmpl-status"></div>
+    </div>
   </div>`;
 }
 
