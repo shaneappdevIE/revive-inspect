@@ -5844,24 +5844,36 @@ async function confirmAddDiagram() {
       window._fbStorage = storageModule.getStorage(fbApp);
       window._fbStorageModules = storageModule;
     }
-    const { ref, uploadBytes, getDownloadURL } = window._fbStorageModules;
+    const { ref, uploadBytesResumable, getDownloadURL } = window._fbStorageModules;
     const storage = window._fbStorage;
 
     const diagId = 'diag_' + Date.now();
     const storageRef = ref(storage, `diagrams/${diagId}/${file.name}`);
 
-    if (progressFill) progressFill.style.width = '40%';
+    if (progressFill) progressFill.style.width = '2%';
     if (status) status.textContent = 'Uploading…';
 
-    console.log('[Diagram Upload] Starting upload to:', storageRef.fullPath);
-    console.log('[Diagram Upload] Storage bucket:', storage.app?.options?.storageBucket);
+    // Use resumable upload so we get real progress events and it handles large files
+    const snapshot = await new Promise((resolve, reject) => {
+      // Timeout scales with file size: 90s base + 30s per MB, minimum 90s
+      const timeoutMs = Math.max(90000, 90000 + (file.size / 1048576) * 30000);
+      const timer = setTimeout(() => reject(new Error('Upload timed out after ' + Math.round(timeoutMs/1000) + 's. Check your connection and that Firebase Storage rules allow writes.')), timeoutMs);
 
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Upload timed out. Ensure Firebase Storage is enabled and rules allow writes. Check the browser console for details.')), 20000)
-    );
-    const snapshot = await Promise.race([uploadBytes(storageRef, file), timeout]);
+      const task = uploadBytesResumable(storageRef, file);
+      task.on('state_changed',
+        (snap) => {
+          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 90);
+          if (progressFill) progressFill.style.width = Math.max(2, pct) + '%';
+          const kb = Math.round(snap.bytesTransferred / 1024);
+          const totalKb = Math.round(snap.totalBytes / 1024);
+          if (status) status.textContent = `Uploading… ${kb} / ${totalKb} KB`;
+        },
+        (err) => { clearTimeout(timer); reject(err); },
+        () => { clearTimeout(timer); resolve(task.snapshot); }
+      );
+    });
 
-    if (progressFill) progressFill.style.width = '80%';
+    if (progressFill) progressFill.style.width = '95%';
     if (status) status.textContent = 'Finalising…';
 
     const url = await getDownloadURL(snapshot.ref);
