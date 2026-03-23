@@ -5824,6 +5824,11 @@ async function confirmAddDiagram() {
   if (!file) { if (status) status.textContent = 'Please select a PDF file.'; return; }
   if (file.type !== 'application/pdf') { if (status) status.textContent = 'Only PDF files are supported.'; return; }
 
+  if (!window._fbDb) {
+    if (status) status.textContent = 'Upload failed: Firebase is not connected. Please check your connection.';
+    return;
+  }
+
   if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
   if (progressWrap) progressWrap.style.display = 'block';
   if (status) status.textContent = 'Uploading to cloud storage...';
@@ -5831,8 +5836,12 @@ async function confirmAddDiagram() {
   try {
     // Load Firebase Storage SDK dynamically
     if (!window._fbStorageModules) {
-      const storageModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js');
-      window._fbStorage = storageModule.getStorage(window._fbApp);
+      const [storageModule, appModule] = await Promise.all([
+        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js'),
+        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js')
+      ]);
+      const fbApp = window._fbApp || appModule.getApp('revive-app');
+      window._fbStorage = storageModule.getStorage(fbApp);
       window._fbStorageModules = storageModule;
     }
     const { ref, uploadBytesResumable, getDownloadURL } = window._fbStorageModules;
