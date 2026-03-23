@@ -5676,6 +5676,39 @@ function saveDiagramsMeta(arr) {
   localStorage.setItem('revive_diagrams', JSON.stringify(arr));
 }
 
+// IndexedDB helpers — store the raw PDF blob so it doesn't eat localStorage quota
+function _openDiagDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('revive_diagrams_db', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('diagrams');
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function _saveDiagBlob(id, blob) {
+  return _openDiagDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('diagrams', 'readwrite');
+    tx.objectStore('diagrams').put(blob, id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function _getDiagBlob(id) {
+  return _openDiagDB().then(db => new Promise((resolve, reject) => {
+    const req = db.transaction('diagrams').objectStore('diagrams').get(id);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+function _deleteDiagBlob(id) {
+  return _openDiagDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction('diagrams', 'readwrite');
+    tx.objectStore('diagrams').delete(id);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
 function _initDiagCategoryBar() {
   const elBtn = document.getElementById('diag-cat-electrical');
   const pnBtn = document.getElementById('diag-cat-pneumatic');
@@ -5694,7 +5727,7 @@ async function renderDiagrams() {
   if (!listEl) return;
   _initDiagCategoryBar();
 
-  // Fetch from Firestore in background and merge
+  // Fetch metadata from Firestore and merge with local cache
   if (window._fbDb && window._fbModules) {
     const { collection, getDocs, query, orderBy } = window._fbModules;
     getDocs(query(collection(window._fbDb, 'diagrams'), orderBy('addedAt', 'desc'))).then(snap => {
@@ -5731,7 +5764,7 @@ function _renderDiagramsList(allDiagrams) {
   } else {
     filtered.forEach(d => {
       const dateStr = d.addedAt ? new Date(d.addedAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : '';
-      html += `<div class="diag-card" onclick="openDiagramViewer('${escHtml(d.url)}','${escHtml(d.name)}')">
+      html += `<div class="diag-card" onclick="openDiagramViewer('${escHtml(d.id)}','${escHtml(d.name)}')">
         <div class="diag-card-icon" style="background:${catBg};color:${catColor}">${ic(catIcon, 24, catColor)}</div>
         <div style="flex:1;min-width:0">
           <div class="diag-card-name">${escHtml(d.name)}</div>
@@ -5752,21 +5785,59 @@ function _renderDiagramsList(allDiagrams) {
   listEl.innerHTML = html;
 }
 
-function openDiagramViewer(url, name) {
+async function openDiagramViewer(diagId, name) {
   const modal = document.getElementById('pdf-viewer-modal');
   const title = document.getElementById('pdf-viewer-title');
   const frame = document.getElementById('pdf-viewer-frame');
   const openBtn = document.getElementById('pdf-viewer-open-btn');
   if (title) title.textContent = name;
-  if (frame) frame.src = url;
-  if (openBtn) openBtn.href = url;
   if (modal) modal.classList.add('open');
+  if (frame) frame.src = '';
+
+  try {
+    // Try local IndexedDB cache first (fast)
+    let blob = await _getDiagBlob(diagId);
+
+    if (!blob && window._fbDb && window._fbModules) {
+      // Not cached locally — fetch chunks from Firestore and reassemble
+      if (title) title.textContent = name + ' — loading…';
+      const { collection, getDocs, query, orderBy } = window._fbModules;
+      const chunksSnap = await getDocs(query(
+        collection(window._fbDb, 'diagrams', diagId, 'chunks'),
+        orderBy('index')
+      ));
+      if (chunksSnap.empty) {
+        if (title) title.textContent = name + ' — file not found';
+        return;
+      }
+      // Reassemble base64 chunks → Uint8Array → Blob
+      const b64 = chunksSnap.docs.map(d => d.data().data).join('');
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      blob = new Blob([bytes], { type: 'application/pdf' });
+      // Cache locally so next open is instant
+      await _saveDiagBlob(diagId, blob).catch(() => {});
+    }
+
+    if (!blob) { if (title) title.textContent = name + ' — not available offline'; return; }
+    if (title) title.textContent = name;
+    const url = URL.createObjectURL(blob);
+    if (frame) frame.src = url;
+    if (openBtn) openBtn.href = url;
+  } catch(e) {
+    if (title) title.textContent = name + ' — could not load file';
+    console.error('[Diagram Open] Error:', e);
+  }
 }
 
 function closeDiagramViewer() {
   const modal = document.getElementById('pdf-viewer-modal');
   const frame = document.getElementById('pdf-viewer-frame');
-  if (frame) frame.src = '';
+  if (frame) {
+    if (frame.src && frame.src.startsWith('blob:')) URL.revokeObjectURL(frame.src);
+    frame.src = '';
+  }
   if (modal) modal.classList.remove('open');
 }
 
@@ -5799,7 +5870,7 @@ function showAddDiagramModal() {
       </div>
       <div id="diag-upload-status" style="font-size:12px;color:var(--text3);margin-bottom:10px;min-height:16px"></div>
       <div style="display:flex;gap:10px">
-        <button id="diag-upload-btn" onclick="confirmAddDiagram()" class="btn btn-primary" style="flex:1;padding:12px">Upload &amp; Save</button>
+        <button id="diag-upload-btn" onclick="confirmAddDiagram()" class="btn btn-primary" style="flex:1;padding:12px">Save Diagram</button>
         <button onclick="document.getElementById('add-diag-modal').remove()" class="btn btn-secondary" style="padding:12px">Cancel</button>
       </div>
     </div>`;
@@ -5824,91 +5895,74 @@ async function confirmAddDiagram() {
   if (!file) { if (status) status.textContent = 'Please select a PDF file.'; return; }
   if (file.type !== 'application/pdf') { if (status) status.textContent = 'Only PDF files are supported.'; return; }
 
-  if (!window._fbDb) {
-    if (status) status.textContent = 'Upload failed: Firebase is not connected. Please check your connection.';
-    return;
-  }
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   if (progressWrap) progressWrap.style.display = 'block';
-  if (status) status.textContent = 'Uploading to cloud storage...';
+  if (progressFill) progressFill.style.width = '5%';
+  if (status) status.textContent = 'Reading file…';
 
   try {
-    // Load Firebase Storage SDK dynamically
-    if (!window._fbStorageModules) {
-      const [storageModule, appModule] = await Promise.all([
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js'),
-        import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js')
-      ]);
-      const fbApp = window._fbApp || appModule.getApp('revive-app');
-      window._fbStorage = storageModule.getStorage(fbApp);
-      window._fbStorageModules = storageModule;
-    }
-    const { ref, uploadBytesResumable, getDownloadURL } = window._fbStorageModules;
-    const storage = window._fbStorage;
-
     const diagId = 'diag_' + Date.now();
-    const storageRef = ref(storage, `diagrams/${diagId}/${file.name}`);
 
-    if (progressFill) progressFill.style.width = '2%';
-    if (status) status.textContent = 'Uploading…';
+    // Read file as ArrayBuffer, split into 500 KB base64 chunks for Firestore
+    const CHUNK = 500 * 1024; // 500 KB — well under Firestore 1 MB doc limit
+    const arrayBuf = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuf);
 
-    // Use resumable upload so we get real progress events and it handles large files
-    const snapshot = await new Promise((resolve, reject) => {
-      // Timeout scales with file size: 90s base + 30s per MB, minimum 90s
-      const timeoutMs = Math.max(90000, 90000 + (file.size / 1048576) * 30000);
-      const timer = setTimeout(() => reject(new Error('Upload timed out after ' + Math.round(timeoutMs/1000) + 's. Check your connection and that Firebase Storage rules allow writes.')), timeoutMs);
+    // Build full base64 string then slice into chunks
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const fullB64 = btoa(binary);
+    const totalChunks = Math.ceil(fullB64.length / (CHUNK * 4 / 3));
 
-      const task = uploadBytesResumable(storageRef, file);
-      task.on('state_changed',
-        (snap) => {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 90);
-          if (progressFill) progressFill.style.width = Math.max(2, pct) + '%';
-          const kb = Math.round(snap.bytesTransferred / 1024);
-          const totalKb = Math.round(snap.totalBytes / 1024);
-          if (status) status.textContent = `Uploading… ${kb} / ${totalKb} KB`;
-        },
-        (err) => { clearTimeout(timer); reject(err); },
-        () => { clearTimeout(timer); resolve(task.snapshot); }
-      );
-    });
+    // Save locally first so the uploader can view it immediately
+    await _saveDiagBlob(diagId, file);
+    if (progressFill) progressFill.style.width = '20%';
 
-    if (progressFill) progressFill.style.width = '95%';
-    if (status) status.textContent = 'Finalising…';
-
-    const url = await getDownloadURL(snapshot.ref);
-
-    // Save metadata to Firestore
-    const meta = {
-      id: diagId,
-      name,
-      category: cat,
-      url,
-      fileName: file.name,
-      addedAt: new Date().toISOString(),
-      addedBy: currentUser?.name || 'unknown'
-    };
-
+    // Sync chunks to Firestore so other devices can open the diagram
     if (window._fbDb && window._fbModules) {
-      const { doc, setDoc } = window._fbModules;
+      const { doc, setDoc, collection } = window._fbModules;
+      const chunkSize64 = Math.ceil(fullB64.length / totalChunks);
+      for (let i = 0; i < totalChunks; i++) {
+        const chunk = fullB64.slice(i * chunkSize64, (i + 1) * chunkSize64);
+        await setDoc(doc(collection(window._fbDb, 'diagrams', diagId, 'chunks'), String(i)), { index: i, data: chunk });
+        const pct = 20 + Math.round(((i + 1) / totalChunks) * 70);
+        if (progressFill) progressFill.style.width = pct + '%';
+        if (status) status.textContent = `Syncing… ${i + 1} / ${totalChunks} parts`;
+      }
+
+      // Save metadata doc
+      const meta = {
+        id: diagId, name, category: cat,
+        fileName: file.name, fileSize: file.size, chunks: totalChunks,
+        addedAt: new Date().toISOString(), addedBy: currentUser?.name || 'unknown'
+      };
       await setDoc(doc(window._fbDb, 'diagrams', diagId), meta);
+
+      const local = getDiagramsMeta();
+      local.unshift(meta);
+      saveDiagramsMeta(local);
+    } else {
+      // Offline — save metadata locally only
+      const meta = {
+        id: diagId, name, category: cat,
+        fileName: file.name, fileSize: file.size,
+        addedAt: new Date().toISOString(), addedBy: currentUser?.name || 'unknown'
+      };
+      const local = getDiagramsMeta();
+      local.unshift(meta);
+      saveDiagramsMeta(local);
     }
 
-    // Update local cache
-    const local = getDiagramsMeta();
-    local.unshift(meta);
-    saveDiagramsMeta(local);
-
+    if (progressFill) progressFill.style.width = '100%';
     logAudit('diagram_added', `Added diagram "${name}" (${cat})`);
-
     document.getElementById('add-diag-modal')?.remove();
     _diagCategory = cat;
     switchDiagCategory(cat);
 
   } catch(e) {
-    console.error('[Diagram Upload] Error:', e);
-    if (status) status.textContent = 'Upload failed: ' + (e.message || 'Unknown error');
-    if (btn) { btn.disabled = false; btn.textContent = 'Upload & Save'; }
+    console.error('[Diagram Save] Error:', e);
+    if (status) status.textContent = 'Save failed: ' + (e.message || 'Unknown error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Diagram'; }
     if (progressWrap) progressWrap.style.display = 'none';
     if (progressFill) progressFill.style.width = '0%';
   }
@@ -5916,13 +5970,19 @@ async function confirmAddDiagram() {
 
 function deleteDiagram(id, name) {
   showConfirmModal(ic('trash',32,'var(--danger)'), 'Delete Diagram', `Delete <strong>${escHtml(name)}</strong>? This cannot be undone.`, 'Delete', 'danger', async () => {
-    // Remove from local cache
     const local = getDiagramsMeta().filter(d => d.id !== id);
     saveDiagramsMeta(local);
 
-    // Remove from Firestore
+    // Remove local blob cache
+    await _deleteDiagBlob(id).catch(() => {});
+
+    // Remove Firestore chunks + metadata doc
     if (window._fbDb && window._fbModules) {
-      const { doc, deleteDoc } = window._fbModules;
+      const { doc, deleteDoc, collection, getDocs } = window._fbModules;
+      const chunksSnap = await getDocs(collection(window._fbDb, 'diagrams', id, 'chunks')).catch(() => null);
+      if (chunksSnap) {
+        for (const c of chunksSnap.docs) await deleteDoc(c.ref).catch(() => {});
+      }
       await deleteDoc(doc(window._fbDb, 'diagrams', id)).catch(() => {});
     }
 
