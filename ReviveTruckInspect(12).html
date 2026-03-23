@@ -2398,10 +2398,6 @@ function escalateToDefect(inspId, sectionId, itemId) {
             ${userOptions}
           </select>
         </div>
-        <div class="input-group">
-          <label class="input-label">Target Fix Date</label>
-          <input id="defect-date-input" type="date" class="input" min="${new Date().toISOString().split('T')[0]}">
-        </div>
         <div class="input-group" style="margin-bottom:18px">
           <label class="input-label">Additional Notes</label>
           <textarea id="defect-notes-input" class="input" placeholder="Any extra context for the person resolving this..." style="min-height:70px"></textarea>
@@ -2438,7 +2434,6 @@ function submitEscalateDefect(inspId, sectionId, itemId) {
   if (!item) return;
 
   const assignedTo = document.getElementById('defect-assign-input')?.value || '';
-  const targetDate = document.getElementById('defect-date-input')?.value || '';
   const notes = document.getElementById('defect-notes-input')?.value || '';
 
   const defect = {
@@ -2454,7 +2449,7 @@ function submitEscalateDefect(inspId, sectionId, itemId) {
     createdAt: new Date().toISOString(),
     createdBy: currentUser?.name || '',
     assignedTo: assignedTo || null,
-    targetDate: targetDate || null,
+    targetDate: null,
     resolutionNotes: notes,
     resolvedAt: null,
     resolvedBy: null,
