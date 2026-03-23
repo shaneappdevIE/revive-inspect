@@ -6378,8 +6378,11 @@ async function adminDeleteUser(userId, userName) {
     'btn-danger',
     async function() {
       try {
-        const { doc, deleteDoc } = window._fbModules;
-        await deleteDoc(doc(window._fbDb, 'users', userId));
+        const { doc, setDoc, getDoc } = window._fbModules;
+        const ref = doc(window._fbDb, 'users', userId);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) { showAdminToast('User not found'); return; }
+        await setDoc(ref, { ...snap.data(), deleted: true, disabled: true });
         logAudit('user_deleted', `Account deleted: ${userName} (${userId})`);
         showAdminToast(`${userName}'s account deleted`);
         renderAdminContent();
@@ -6729,7 +6732,7 @@ function _renderUsersTab() {
 
 function _loadAdminUsersAsync() {
   window._fbModules.getDocs(window._fbModules.collection(window._fbDb, 'users')).then(snap => {
-    const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const users = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(u => !u.deleted);
     const membersEl = document.getElementById('admin-members-list');
     if (!membersEl) return;
     if (users.length === 0) {
