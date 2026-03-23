@@ -5844,26 +5844,21 @@ async function confirmAddDiagram() {
       window._fbStorage = storageModule.getStorage(fbApp);
       window._fbStorageModules = storageModule;
     }
-    const { ref, uploadBytesResumable, getDownloadURL } = window._fbStorageModules;
+    const { ref, uploadBytes, getDownloadURL } = window._fbStorageModules;
     const storage = window._fbStorage;
 
     const diagId = 'diag_' + Date.now();
     const storageRef = ref(storage, `diagrams/${diagId}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
 
-    await new Promise((resolve, reject) => {
-      uploadTask.on('state_changed',
-        snap => {
-          const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-          if (progressFill) progressFill.style.width = pct + '%';
-          if (status) status.textContent = `Uploading… ${pct}%`;
-        },
-        reject,
-        resolve
-      );
-    });
+    if (progressFill) progressFill.style.width = '40%';
+    if (status) status.textContent = 'Uploading…';
 
-    const url = await getDownloadURL(uploadTask.snapshot.ref);
+    const snapshot = await uploadBytes(storageRef, file);
+
+    if (progressFill) progressFill.style.width = '80%';
+    if (status) status.textContent = 'Finalising…';
+
+    const url = await getDownloadURL(snapshot.ref);
 
     // Save metadata to Firestore
     const meta = {
