@@ -6107,6 +6107,15 @@ function loadSettings() {
     const themeToggle = document.getElementById('theme-toggle');
     if (themeToggle) themeToggle.classList.add('on');
   }
+  _updateWelcomeThemeBtn();
+}
+
+function _updateWelcomeThemeBtn() {
+  const btn = document.getElementById('welcome-theme-toggle');
+  if (!btn) return;
+  const isLight = document.body.classList.contains('light-mode');
+  btn.textContent = isLight ? '☀️' : '🌙';
+  btn.title = isLight ? 'Switch to dark mode' : 'Switch to light mode';
 }
 
 function toggleTheme() {
@@ -6116,6 +6125,7 @@ function toggleTheme() {
   if (toggle) toggle.classList.toggle('on', isLight);
   const sub = document.getElementById('theme-sub-text');
   if (sub) sub.textContent = isLight ? 'Light mode' : 'Dark mode';
+  _updateWelcomeThemeBtn();
 }
 
 function updateSettingsTab() {
@@ -7725,6 +7735,7 @@ document.addEventListener('keydown', function(e) {
 
   <!-- ===== WELCOME SCREEN ===== -->
   <div id="welcome-screen" class="screen active" style="position:relative">
+    <button id="welcome-theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode" style="position:absolute;top:16px;right:16px;z-index:10;background:rgba(0,0,0,0.45);border:1.5px solid rgba(255,255,255,0.25);color:#fff;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;backdrop-filter:blur(8px);transition:background 0.2s;"></button>
 <div class="bg-slideshow" id="bg-slideshow">
   <div class="bg-slide active" style="background-image:url('images/slide-1.jpg')"></div>
   <div class="bg-slide" style="background-image:url('images/slide-2.jpg')"></div>
