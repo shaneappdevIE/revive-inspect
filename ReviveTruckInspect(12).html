@@ -3031,7 +3031,9 @@ function renderHomeLists() {
     .slice(0, 3);
 
   const tabBtnIcon = document.getElementById('insp-tab-btn-icon');
-  if (tabBtnIcon) tabBtnIcon.innerHTML = ic('plus', 22, '#fff');
+  if (tabBtnIcon) tabBtnIcon.innerHTML = ic('clipboard', 20, 'var(--green)');
+  const tabBtnArrow = document.getElementById('insp-tab-btn-arrow');
+  if (tabBtnArrow) tabBtnArrow.innerHTML = ic('arrowRight', 16, 'var(--text3)');
 
   const aEl = document.getElementById('active-inspections-list');
   aEl.innerHTML = active.length ? active.map(i => inspectionCardHTML(i)).join('') :
@@ -7616,12 +7618,13 @@ document.addEventListener('keydown', function(e) {
     <div class="tab-content" id="tab-content-inspections">
       <div class="scroll">
 
-        <button class="new-inspection-btn" onclick="showNewInspection()" style="margin-bottom:16px">
-          <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="insp-tab-btn-icon"></div>
-          <div>
-            <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:#fff">Start New Inspection</div>
-            <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px">Tap to begin a truck inspection</div>
+        <button onclick="showNewInspection()" style="background:var(--card);border:1.5px solid var(--green);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.15s;margin-bottom:16px" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background='var(--card)'">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(29,185,84,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="insp-tab-btn-icon"></div>
+          <div style="text-align:left">
+            <div style="font-size:15px;font-weight:700;color:var(--text)">Start New Inspection</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Tap to begin a truck inspection</div>
           </div>
+          <div style="margin-left:auto;flex-shrink:0" id="insp-tab-btn-arrow"></div>
         </button>
 
         <div class="section-label">Active Inspections</div>
