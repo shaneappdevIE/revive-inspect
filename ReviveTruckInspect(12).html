@@ -389,6 +389,8 @@
   /* ===== WIDE DESKTOP (≥1100px) ===== */
   @media (min-width: 1100px) {
     #home-recent-list, #recent-inspections-list, #active-inspections-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #admin-insp-area { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+    #admin-insp-area > div:not(.insp-card) { grid-column: 1 / -1; }
     .sidebar { width: 280px; }
     #main-content-area { margin-left: 280px; }
     #admin-screen.desktop-shifted { margin-left: 280px; }
@@ -6320,8 +6322,8 @@ function _renderInspectionsTab(allSorted, pendingApproval) {
         <option value="New Zealand Warrior">New Zealand Warrior</option>
       </select>
       <button onclick="toggleAdminSelectMode()"
-        style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:${_adminSelectMode ? 'var(--danger)' : 'var(--text2)'};font-family:'Barlow',sans-serif;cursor:pointer;white-space:nowrap">
-        ${_adminSelectMode ? 'Cancel' : 'Select'}
+        style="font-size:12px;font-weight:700;padding:5px 14px;border-radius:8px;border:1.5px solid ${_adminSelectMode ? 'rgba(229,57,53,0.5)' : 'rgba(29,185,84,0.4)'};background:${_adminSelectMode ? 'rgba(229,57,53,0.1)' : 'rgba(29,185,84,0.1)'};color:${_adminSelectMode ? 'var(--danger)' : 'var(--green)'};font-family:'Barlow',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0">
+        ${_adminSelectMode ? 'Cancel' : `${ic('check',12,'currentColor')} Select`}
       </button>
     </div>
   </div>
