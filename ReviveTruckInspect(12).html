@@ -350,9 +350,7 @@
   .sidebar-logo-text { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; }
   .sidebar-logo-text span { color: var(--green); }
   .dt-page-title { display: none; font-family: 'Rajdhani', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; align-items: center; }
-  .dt-new-btn { display: none; align-items: center; gap: 6px; background: var(--green); color: #000; border: none; border-radius: 10px; padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: filter 0.15s, transform 0.15s; white-space: nowrap; flex-shrink: 0; }
-  .dt-new-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .dt-new-btn:active { transform: translateY(0); filter: brightness(1); }
+
 
   /* ===== DESKTOP LAYOUT (≥768px) ===== */
   @media (min-width: 768px) {
@@ -371,7 +369,7 @@
     .user-bar { height: 58px; padding: 0 28px; border-bottom: 1px solid var(--border); }
     /* Show desktop page title and quick-action button */
     .dt-page-title { display: flex; }
-    .dt-new-btn { display: flex; margin-left: 20px; }
+
     /* Wider scroll padding */
     .scroll { padding: 28px 32px; }
     /* Quick access: 3-column grid */
@@ -2923,9 +2921,7 @@ function switchTab(tab) {
   const tabTitles = { home: 'Home', inspections: 'Inspections', history: 'History', settings: 'Settings', diagrams: 'Diagrams' };
   const dtTitle = document.getElementById('dt-page-title');
   if (dtTitle) dtTitle.textContent = tabTitles[tab] || tab;
-  // Show "New Inspection" button only on home/inspections tabs
-  const dtNewBtn = document.getElementById('dt-new-btn');
-  if (dtNewBtn) dtNewBtn.style.display = (tab === 'home' || tab === 'inspections') ? 'flex' : 'none';
+
 }
 
 function openSidebar() {
@@ -7578,9 +7574,7 @@ document.addEventListener('keydown', function(e) {
       </button>
       <!-- Desktop: page title + quick action -->
       <div id="dt-page-title" class="dt-page-title">Home</div>
-      <button class="dt-new-btn" onclick="showNewInspection()" id="dt-new-btn">
-        <span id="dt-new-icon"></span> New Inspection
-      </button>
+
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div class="sync-indicator sync-local" id="sync-indicator"><div class="sync-dot"></div><span id="sync-label">Local</span></div>
         <div class="user-avatar" id="user-avatar-initials">JM</div>
