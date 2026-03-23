@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://revive-inspect.web.app", "https://revive-inspect.firebaseapp.com"],
+    "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "User-Agent", "x-goog-*"],
+    "maxAgeSeconds": 3600
+  }
+]
