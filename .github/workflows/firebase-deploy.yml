@@ -11,6 +11,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write        # required by FirebaseExtended/action-hosting-deploy to post check runs
+      contents: read
+      pull-requests: write # required to post preview URL comments on PRs
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
