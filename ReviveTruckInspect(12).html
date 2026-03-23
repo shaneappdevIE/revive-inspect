@@ -344,33 +344,66 @@
   /* ===== MAIN CONTENT WRAPPER ===== */
   #main-content-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
 
+  /* ===== DESKTOP-ONLY ELEMENTS (hidden on mobile) ===== */
+  .sidebar-logo { display: none; align-items: center; gap: 10px; padding: 18px 16px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .sidebar-logo img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
+  .sidebar-logo-text { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; }
+  .sidebar-logo-text span { color: var(--green); }
+  .dt-page-title { display: none; font-family: 'Rajdhani', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; align-items: center; }
+  .dt-new-btn { display: none; align-items: center; gap: 6px; background: var(--green); color: #000; border: none; border-radius: 10px; padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: filter 0.15s, transform 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .dt-new-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .dt-new-btn:active { transform: translateY(0); filter: brightness(1); }
+
   /* ===== DESKTOP LAYOUT (≥768px) ===== */
   @media (min-width: 768px) {
     /* Sidebar always visible — no slide animation */
-    .sidebar { transform: translateX(0) !important; transition: none !important; box-shadow: 2px 0 12px rgba(0,0,0,0.08); }
+    .sidebar { transform: translateX(0) !important; transition: none !important; box-shadow: none; border-right: 1px solid var(--border); }
     /* Overlay never shown on desktop */
     .sidebar-overlay { display: none !important; }
     /* Hide mobile-only controls */
     .sidebar-close-btn { display: none !important; }
     .sidebar-hamburger { display: none !important; }
+    /* Show desktop-only sidebar logo */
+    .sidebar-logo { display: flex; }
     /* Content area pushed right of sidebar */
     #main-content-area { margin-left: 270px; }
-    /* Spacious user bar */
-    .user-bar { padding: 10px 28px; }
+    /* Top bar: taller, proper header feel */
+    .user-bar { height: 58px; padding: 0 28px; border-bottom: 1px solid var(--border); }
+    /* Show desktop page title and quick-action button */
+    .dt-page-title { display: flex; }
+    .dt-new-btn { display: flex; margin-left: 20px; }
     /* Wider scroll padding */
-    .scroll { padding: 28px 36px; }
+    .scroll { padding: 28px 32px; }
     /* Quick access: 3-column grid */
     #home-shortcuts-grid { grid-template-columns: repeat(3, 1fr) !important; }
     /* Greeting larger */
-    #home-greeting-text { font-size: 32px !important; }
+    #home-greeting-text { font-size: 30px !important; }
     /* Stats row spacing */
-    .home-stats-row { gap: 16px; margin-bottom: 24px; }
-    /* Inspection cards: 2 columns on wider desktop */
-    @media (min-width: 1100px) {
-      #home-recent-list, #recent-inspections-list, #active-inspections-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    }
+    .home-stats-row { gap: 14px; margin-bottom: 22px; }
     /* Admin screen also shifts right of sidebar when on desktop */
     #admin-screen.desktop-shifted { margin-left: 270px; }
+    /* Inspection/history/admin screens also shift */
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 270px; }
+  }
+
+  /* ===== WIDE DESKTOP (≥1100px) ===== */
+  @media (min-width: 1100px) {
+    #home-recent-list, #recent-inspections-list, #active-inspections-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sidebar { width: 280px; }
+    #main-content-area { margin-left: 280px; }
+    #admin-screen.desktop-shifted { margin-left: 280px; }
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 280px; }
+  }
+
+  /* ===== EXTRA-WIDE DESKTOP (≥1400px) ===== */
+  @media (min-width: 1400px) {
+    .sidebar { width: 300px; }
+    #main-content-area { margin-left: 300px; }
+    #admin-screen.desktop-shifted { margin-left: 300px; }
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 300px; }
+    .scroll { padding: 36px max(36px, calc((100% - 1180px) / 2)); }
+    #home-shortcuts-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    #home-greeting-text { font-size: 34px !important; }
   }
 
   /* ===== INSPECTION SCREEN ===== */
@@ -1126,6 +1159,26 @@
   .admin-tab-btn:hover { background: var(--card2); color: var(--text2); }
   .admin-tab-btn.active { background: rgba(29,185,84,0.1); border-color: rgba(29,185,84,0.3); color: var(--green); }
   .admin-tab-badge { position: absolute; top: 4px; right: 6px; background: var(--warning); color: #000; font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 8px; line-height: 1.4; }
+
+  /* ---- Admin bulk-select ---- */
+  .insp-card.admin-selected { border-color: var(--green) !important; background: rgba(29,185,84,0.07) !important; }
+  .admin-insp-cb {
+    width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--border);
+    background: var(--card2); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .admin-insp-cb.checked { background: var(--green); border-color: var(--green); }
+  .admin-bulk-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 10px 14px; margin-bottom: 12px;
+  }
+  .admin-bulk-count { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+  .admin-bulk-sel-btn { background: var(--card2); border: 1px solid var(--border); color: var(--text2); border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 700; font-family: 'Barlow', sans-serif; cursor: pointer; transition: all 0.15s; }
+  .admin-bulk-sel-btn:hover { border-color: var(--green); color: var(--green); }
+  .admin-bulk-del-btn { background: rgba(229,57,53,0.1); border: 1px solid rgba(229,57,53,0.3); color: var(--danger); border-radius: 8px; padding: 5px 14px; font-size: 12px; font-weight: 700; font-family: 'Barlow', sans-serif; cursor: pointer; transition: all 0.15s; }
+  .admin-bulk-del-btn:hover:not(:disabled) { background: rgba(229,57,53,0.2); }
+  .admin-bulk-del-btn:disabled { opacity: 0.4; cursor: default; }
 
   /* ---- Dashboard charts ---- */
   .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
@@ -2080,6 +2133,8 @@ let selectedTeam = null;
 let selectedTruckType = '';
 let _editingTemplate = null; // { team, truckType, sections } — used by the admin template editor
 let _adminTab = 'overview';  // active admin tab: 'overview' | 'inspections' | 'users' | 'settings'
+let _adminSelectMode = false;
+let _adminSelectedIds = new Set();
 window._templateCache = {};  // keyed by templateDocId, caches loaded templates
 
 // ===================== INIT =====================
@@ -2808,6 +2863,13 @@ function switchTab(tab) {
   if (tab === 'history') renderHistory();
   if (tab === 'settings') updateSettingsTab();
   if (tab === 'diagrams') renderDiagrams();
+  // Update desktop page title
+  const tabTitles = { home: 'Home', inspections: 'Inspections', history: 'History', settings: 'Settings', diagrams: 'Diagrams' };
+  const dtTitle = document.getElementById('dt-page-title');
+  if (dtTitle) dtTitle.textContent = tabTitles[tab] || tab;
+  // Show "New Inspection" button only on home/inspections tabs
+  const dtNewBtn = document.getElementById('dt-new-btn');
+  if (dtNewBtn) dtNewBtn.style.display = (tab === 'home' || tab === 'inspections') ? 'flex' : 'none';
 }
 
 function openSidebar() {
@@ -3044,6 +3106,70 @@ function adminDeleteInspection(id, truckName) {
   });
 }
 
+function toggleAdminSelectMode() {
+  _adminSelectMode = !_adminSelectMode;
+  _adminSelectedIds.clear();
+  const filter = document.getElementById('admin-insp-filter')?.value || '';
+  const area = document.getElementById('admin-insp-area');
+  if (area && window._adminAllInspections) area.innerHTML = buildAdminInspHTML(window._adminAllInspections, filter);
+  _updateAdminBulkBar();
+  const bar = document.getElementById('admin-bulk-bar');
+  if (bar) bar.style.display = _adminSelectMode ? 'flex' : 'none';
+}
+
+function toggleAdminInspSelect(id, ev) {
+  ev.stopPropagation();
+  if (_adminSelectedIds.has(id)) { _adminSelectedIds.delete(id); } else { _adminSelectedIds.add(id); }
+  const card = document.querySelector(`.insp-card[data-aid="${id}"]`);
+  if (card) {
+    card.classList.toggle('admin-selected', _adminSelectedIds.has(id));
+    const cb = card.querySelector('.admin-insp-cb');
+    if (cb) { cb.classList.toggle('checked', _adminSelectedIds.has(id)); cb.innerHTML = _adminSelectedIds.has(id) ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''; }
+  }
+  _updateAdminBulkBar();
+}
+
+function adminSelectAllVisible() {
+  if (!window._adminAllInspections) return;
+  const filter = document.getElementById('admin-insp-filter')?.value || '';
+  const visible = filter ? window._adminAllInspections.filter(i => i.truckType === filter) : window._adminAllInspections;
+  visible.forEach(i => _adminSelectedIds.add(i.id));
+  document.querySelectorAll('.insp-card[data-aid]').forEach(card => {
+    card.classList.add('admin-selected');
+    const cb = card.querySelector('.admin-insp-cb');
+    if (cb) { cb.classList.add('checked'); cb.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'; }
+  });
+  _updateAdminBulkBar();
+}
+
+function _updateAdminBulkBar() {
+  const count = _adminSelectedIds.size;
+  const countEl = document.getElementById('admin-sel-count');
+  if (countEl) countEl.textContent = count === 0 ? 'None selected' : `${count} selected`;
+  const delBtn = document.getElementById('admin-bulk-del-btn');
+  if (delBtn) { delBtn.disabled = count === 0; delBtn.textContent = count > 0 ? `Delete ${count}` : 'Delete'; }
+}
+
+async function adminBulkDelete() {
+  const count = _adminSelectedIds.size;
+  if (count === 0) return;
+  showConfirmModal(ic('trash',32,'var(--danger)'), 'Delete Inspections',
+    `Delete <strong>${count} inspection${count !== 1 ? 's' : ''}</strong>? This cannot be undone.`,
+    `Delete ${count}`, 'danger', async () => {
+      const ids = [..._adminSelectedIds];
+      inspections = inspections.filter(i => !ids.includes(i.id));
+      saveData();
+      if (window._fbDb && window._fbModules) {
+        const { doc, deleteDoc } = window._fbModules;
+        await Promise.all(ids.map(id => deleteDoc(doc(window._fbDb, 'inspections', id)).catch(() => {})));
+      }
+      logAudit('bulk_delete', `Bulk deleted ${count} inspection${count !== 1 ? 's' : ''}`);
+      _adminSelectMode = false;
+      _adminSelectedIds.clear();
+      renderAdminContent();
+    });
+}
+
 function inspectionCardHTML(insp, adminMode = false) {
   const total = insp.sections.reduce((a,s) => a + s.items.length, 0);
   const done = insp.sections.reduce((a,s) => a + s.items.filter(it => it.completed).length, 0);
@@ -3075,14 +3201,22 @@ function inspectionCardHTML(insp, adminMode = false) {
     : insp.status === 'completed'
       ? `<span style="color:var(--warning);font-size:11px;font-weight:600;background:rgba(245,124,0,0.1);padding:2px 7px;border-radius:20px">${ic('clock',10,'var(--warning)')} Pending</span>`
       : '';
-  const deleteBtn = adminMode
+  const isSelected = _adminSelectMode && _adminSelectedIds.has(insp.id);
+  const cbHtml = adminMode && _adminSelectMode
+    ? `<div class="admin-insp-cb${isSelected ? ' checked' : ''}" style="margin-right:4px">${isSelected ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>' : ''}</div>`
+    : '';
+  const deleteBtn = adminMode && !_adminSelectMode
     ? `<button onclick="event.stopPropagation();adminDeleteInspection('${insp.id}','${escHtml(insp.truckName)}')"
         style="margin-left:4px;background:rgba(229,57,53,0.1);border:1px solid rgba(229,57,53,0.25);color:var(--danger);border-radius:7px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',sans-serif;flex-shrink:0;line-height:1.4"
         title="Delete inspection">${ic('trash',11,'var(--danger)')} Delete</button>`
     : '';
-  return `<div class="insp-card ${cardBorder}" onclick="openInspection('${insp.id}')">
+  const cardOnClick = adminMode && _adminSelectMode
+    ? `toggleAdminInspSelect('${insp.id}', event)`
+    : `openInspection('${insp.id}')`;
+  const selectedClass = isSelected ? ' admin-selected' : '';
+  return `<div class="insp-card ${cardBorder}${selectedClass}" data-aid="${insp.id}" onclick="${cardOnClick}">
     <div class="insp-card-top">
-      <div class="insp-truck-name">${escHtml(insp.truckName)}</div>
+      ${cbHtml}<div class="insp-truck-name">${escHtml(insp.truckName)}</div>
       <div style="display:flex;align-items:center;gap:6px">${pendingBadge}${approvalBadge}<div class="status-badge ${statusClass}">${statusText}</div>${deleteBtn}</div>
     </div>
     <div class="insp-meta">
@@ -4578,6 +4712,9 @@ function initIcons() {
   if (tinsp) tinsp.innerHTML = ic('clipboard', 20);
   const thist = document.getElementById('snav-icon-history');
   if (thist) thist.innerHTML = ic('clock', 20);
+  // Desktop new inspection button icon
+  const dtni = document.getElementById('dt-new-icon');
+  if (dtni) dtni.innerHTML = ic('clipboard', 14, '#000');
   // Hamburger + close
   const hmb = document.getElementById('sidebar-menu-icon');
   if (hmb) hmb.innerHTML = ic('menu', 20, 'currentColor');
@@ -5962,6 +6099,7 @@ function filterAdminInspections(truckType) {
 }
 
 function switchAdminTab(tab) {
+  if (tab !== 'inspections') { _adminSelectMode = false; _adminSelectedIds.clear(); }
   _adminTab = tab;
   renderAdminContent();
 }
@@ -6169,17 +6307,28 @@ function _renderInspectionsTab(allSorted, pendingApproval) {
       <div><div style="font-size:14px;font-weight:700;color:var(--warning)">${pendingApproval} awaiting supervisor approval</div></div>
     </div>`;
   }
-  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px">
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap">
     <div class="section-label" style="padding:0;margin:0">${ic('clipboard',13,'var(--text3)')} All Inspections</div>
-    <select id="admin-insp-filter" onchange="filterAdminInspections(this.value)"
-      style="font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text1);font-family:'Barlow',sans-serif;cursor:pointer;max-width:170px;outline:none">
-      <option value="">All Truck Types</option>
-      <option value="Standard Warrior">Standard Warrior</option>
-      <option value="Danish Warrior">Danish Warrior</option>
-      <option value="European Warrior">European Warrior</option>
-      <option value="Super Warrior">Super Warrior</option>
-      <option value="New Zealand Warrior">New Zealand Warrior</option>
-    </select>
+    <div style="display:flex;align-items:center;gap:8px">
+      <select id="admin-insp-filter" onchange="filterAdminInspections(this.value)"
+        style="font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text1);font-family:'Barlow',sans-serif;cursor:pointer;max-width:160px;outline:none">
+        <option value="">All Truck Types</option>
+        <option value="Standard Warrior">Standard Warrior</option>
+        <option value="Danish Warrior">Danish Warrior</option>
+        <option value="European Warrior">European Warrior</option>
+        <option value="Super Warrior">Super Warrior</option>
+        <option value="New Zealand Warrior">New Zealand Warrior</option>
+      </select>
+      <button onclick="toggleAdminSelectMode()"
+        style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:${_adminSelectMode ? 'var(--danger)' : 'var(--text2)'};font-family:'Barlow',sans-serif;cursor:pointer;white-space:nowrap">
+        ${_adminSelectMode ? 'Cancel' : 'Select'}
+      </button>
+    </div>
+  </div>
+  <div class="admin-bulk-bar" id="admin-bulk-bar" style="display:${_adminSelectMode ? 'flex' : 'none'}">
+    <span class="admin-bulk-count" id="admin-sel-count">None selected</span>
+    <button class="admin-bulk-sel-btn" onclick="adminSelectAllVisible()">Select All</button>
+    <button class="admin-bulk-del-btn" id="admin-bulk-del-btn" onclick="adminBulkDelete()" disabled>Delete</button>
   </div>
   <div id="admin-insp-area">${buildAdminInspHTML(allSorted, '')}</div>`;
   return html;
@@ -7326,6 +7475,11 @@ document.addEventListener('keydown', function(e) {
     <!-- SIDEBAR -->
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
     <div class="sidebar" id="sidebar">
+      <!-- Logo area — visible on desktop only -->
+      <div class="sidebar-logo">
+        <img src="images/logo.png" alt="Revive">
+        <div class="sidebar-logo-text"><span>Revive</span> Inspect</div>
+      </div>
       <div class="sidebar-header">
         <div class="user-avatar" id="sidebar-avatar" style="width:34px;height:34px;font-size:13px;flex-shrink:0">JM</div>
         <div style="min-width:0">
@@ -7361,9 +7515,15 @@ document.addEventListener('keydown', function(e) {
     </div>
 
     <div class="user-bar">
+      <!-- Mobile: hamburger menu -->
       <button class="sidebar-hamburger" id="sidebar-menu-btn" onclick="openSidebar()" aria-label="Open menu" style="margin-left:0;display:flex;align-items:center;gap:6px;padding:6px 8px">
         <span id="sidebar-menu-icon"></span>
         <span style="font-size:13px;font-weight:700;font-family:'Barlow',sans-serif;color:var(--text2);letter-spacing:0.2px">Menu</span>
+      </button>
+      <!-- Desktop: page title + quick action -->
+      <div id="dt-page-title" class="dt-page-title">Home</div>
+      <button class="dt-new-btn" onclick="showNewInspection()" id="dt-new-btn">
+        <span id="dt-new-icon"></span> New Inspection
       </button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div class="sync-indicator sync-local" id="sync-indicator"><div class="sync-dot"></div><span id="sync-label">Local</span></div>
