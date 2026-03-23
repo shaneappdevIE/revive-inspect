@@ -386,6 +386,14 @@
     #admin-screen.desktop-shifted { margin-left: 270px; }
     /* new-inspection / inspection / view screens are full-width — no sidebar on those screens */
 
+    /* Admin analytics desktop */
+    .admin-stat-grid { grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .admin-stat-card { padding: 18px 14px; }
+    .admin-stat-num { font-size: 36px; }
+    .admin-stat-icon { width:36px;height:36px;border-radius:10px;margin-bottom:10px; }
+    #admin-chart-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    #admin-chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
     /* Inspections tab desktop layout */
     #tab-content-inspections .scroll { padding: 0; }
     #insp-mob-new-btn { display: none !important; }
@@ -640,8 +648,11 @@
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
     padding: 16px 14px; text-align: center;
   }
+  .admin-stat-icon { width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px; }
   .admin-stat-num { font-size: 30px; font-weight: 800; color: var(--green); font-family: 'Rajdhani', sans-serif; line-height: 1; }
   .admin-stat-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; font-weight: 700; }
+  #admin-chart-grid-3 { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  #admin-chart-grid-2 { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
   .admin-team-row {
     display: flex; align-items: center; gap: 12px;
     padding: 12px 0; border-bottom: 1px solid var(--border);
@@ -6327,6 +6338,8 @@ function _renderOverviewTab(total, completed, inProgress, totalIssues, pendingAp
 
   const teamCounts = {};
   inspections.forEach(i => { const k = i.teamLabel || i.team; teamCounts[k] = (teamCounts[k] || 0) + 1; });
+  const openDefects = defects.filter(d => d.status === 'open').length;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   let html = `
   <!-- SUPERVISOR TOGGLE -->
@@ -6367,31 +6380,57 @@ function _renderOverviewTab(total, completed, inProgress, totalIssues, pendingAp
   <!-- STATS -->
   <div class="section-label" style="padding:4px 0 8px">${ic('clipboard',13,'var(--text3)')} Statistics</div>
   <div class="admin-stat-grid">
-    <div class="admin-stat-card"><div class="admin-stat-num">${total}</div><div class="admin-stat-lbl">Total</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-num" style="color:var(--green)">${completed}</div><div class="admin-stat-lbl">Completed</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-num" style="color:var(--warning)">${inProgress}</div><div class="admin-stat-lbl">In Progress</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-num" style="color:${totalIssues>0?'var(--danger)':'var(--green)'}">${totalIssues}</div><div class="admin-stat-lbl">Issues</div></div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:rgba(100,100,100,0.1)">${ic('clipboard',16,'var(--text2)')}</div>
+      <div class="admin-stat-num">${total}</div><div class="admin-stat-lbl">Total</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:rgba(29,185,84,0.12)">${ic('check',16,'var(--green)')}</div>
+      <div class="admin-stat-num" style="color:var(--green)">${completed}</div><div class="admin-stat-lbl">Completed</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:rgba(251,146,60,0.12)">${ic('clock',16,'var(--warning)')}</div>
+      <div class="admin-stat-num" style="color:var(--warning)">${inProgress}</div><div class="admin-stat-lbl">Active</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:${totalIssues>0?'rgba(248,113,113,0.12)':'rgba(29,185,84,0.08)'}">${ic('warning',16,totalIssues>0?'var(--danger)':'var(--text3)')}</div>
+      <div class="admin-stat-num" style="color:${totalIssues>0?'var(--danger)':'var(--text)'}">${totalIssues}</div><div class="admin-stat-lbl">Issues</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-icon" style="background:${openDefects>0?'rgba(248,113,113,0.12)':'rgba(29,185,84,0.08)'}">${ic('shield',16,openDefects>0?'var(--danger)':'var(--text3)')}</div>
+      <div class="admin-stat-num" style="color:${openDefects>0?'var(--danger)':'var(--text)'}">${openDefects}</div><div class="admin-stat-lbl">Open Defects</div>
+    </div>
   </div>
 
   <!-- CHARTS -->
   <div class="section-label" style="padding:8px 0">${ic('activity',13,'var(--text3)')} Analytics</div>
   <div class="chart-card">
-    <div class="chart-title">Weekly Inspections — last 8 weeks</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="chart-title" style="margin-bottom:0">Weekly Inspections — last 8 weeks</div>
+      <div style="display:flex;gap:12px;font-size:11px;color:var(--text2)">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:var(--green);display:inline-block"></span>Completed</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:2px;background:var(--warning);display:inline-block"></span>In Progress</span>
+      </div>
+    </div>
     <div id="chart-weekly-svg"></div>
   </div>
-  <div class="chart-grid-2">
+  <div id="admin-chart-grid-3">
     <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Issue Severity</div><div id="chart-severity-svg"></div></div>
     <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Top Failing Items</div><div id="chart-top-issues"></div></div>
+    <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Inspector Activity</div><div id="chart-inspector-activity"></div></div>
   </div>`;
 
-  // By Team breakdown
+  // By Team + Recurring Issues — side by side on desktop
+  let teamHtml = '', recurringHtml = '';
+
   if (Object.keys(teamCounts).length > 0) {
-    html += `<div class="section-label" style="padding:8px 0">By Team</div><div class="card" style="margin-bottom:12px">`;
+    teamHtml = `<div class="chart-card" style="margin-bottom:0">
+      <div class="chart-title">By Team</div>`;
     Object.entries(teamCounts).sort((a,b) => b[1]-a[1]).forEach(([team, count]) => {
       const teamObj = getTeams().find(t => team === t.label || team === t.id) || getTeams().find(t => team.toLowerCase().includes(t.id)) || {};
       const color = teamObj.color || 'var(--green)';
       const pct = total > 0 ? Math.round(count/total*100) : 0;
-      html += `<div class="admin-team-row">
+      teamHtml += `<div class="admin-team-row">
         <div class="admin-team-dot" style="background:${color}"></div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:600">${escHtml(team)}</div>
@@ -6402,10 +6441,9 @@ function _renderOverviewTab(total, completed, inProgress, totalIssues, pendingAp
         <div style="font-size:14px;font-weight:700;color:var(--text2);min-width:28px;text-align:right">${count}</div>
       </div>`;
     });
-    html += `</div>`;
+    teamHtml += `</div>`;
   }
 
-  // Recurring issues summary
   const recurringMap = window._recurringIssueMap;
   if (recurringMap && recurringMap.size > 0) {
     const topRecurring = [...recurringMap.entries()]
@@ -6413,22 +6451,26 @@ function _renderOverviewTab(total, completed, inProgress, totalIssues, pendingAp
       .sort((a,b) => b[1]-a[1])
       .slice(0, 5);
     if (topRecurring.length > 0) {
-      html += `<div class="section-label" style="padding:8px 0">${ic('activity',13,'var(--warning)')} Recurring Issues</div>
-      <div class="card" style="margin-bottom:12px">
-        <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Items that have failed multiple times on the same truck</div>`;
+      recurringHtml = `<div class="chart-card" style="margin-bottom:0">
+        <div class="chart-title">${ic('activity',11,'var(--warning)')} Recurring Issues</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Failed multiple times on same truck</div>`;
       topRecurring.forEach(([key, count]) => {
         const [truck, ...itemParts] = key.split('::');
         const itemLabel = itemParts.join('::');
-        html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+        recurringHtml += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600">${escHtml(itemLabel)}</div>
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(itemLabel)}</div>
             <div style="font-size:11px;color:var(--text3);margin-top:2px">${ic('truck',10,'var(--text3)')} ${escHtml(truck)}</div>
           </div>
           <span class="recurring-badge" style="margin-left:0">${ic('activity',10,'var(--warning)')} ×${count}</span>
         </div>`;
       });
-      html += `</div>`;
+      recurringHtml += `</div>`;
     }
+  }
+
+  if (teamHtml || recurringHtml) {
+    html += `<div id="admin-chart-grid-2" style="margin-top:10px">${teamHtml}${recurringHtml}</div>`;
   }
 
   return html;
@@ -6852,13 +6894,49 @@ function renderAdminCharts() {
   _renderWeeklyChart();
   _renderSeverityDonut();
   _renderTopIssues();
+  _renderInspectorActivity();
+}
+
+function _renderInspectorActivity() {
+  const el = document.getElementById('chart-inspector-activity');
+  if (!el) return;
+
+  const counts = {};
+  inspections.forEach(i => {
+    const name = i.inspectorName || 'Unknown';
+    if (!counts[name]) counts[name] = { total: 0, completed: 0 };
+    counts[name].total++;
+    if (i.status === 'completed') counts[name].completed++;
+  });
+
+  const sorted = Object.entries(counts).sort((a,b) => b[1].total - a[1].total).slice(0, 6);
+  if (sorted.length === 0) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px 0">No inspection data yet</div>';
+    return;
+  }
+
+  const peak = sorted[0][1].total;
+  el.innerHTML = sorted.map(([name, data], i) => {
+    const pct = ((data.total / peak) * 100).toFixed(0);
+    const initials = name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+    const compRate = data.total > 0 ? Math.round((data.completed / data.total) * 100) : 0;
+    return `<div style="${i < sorted.length-1 ? 'margin-bottom:10px' : ''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="width:22px;height:22px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#000;flex-shrink:0">${initials}</div>
+        <div style="flex:1;font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(name)}</div>
+        <div style="font-size:12px;font-weight:700;flex-shrink:0">${data.total}<span style="font-size:9px;color:var(--text3);font-weight:600;margin-left:3px">${compRate}%</span></div>
+      </div>
+      <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
+        <div style="height:100%;background:var(--green);border-radius:2px;width:${pct}%;opacity:0.8;transition:width 0.6s"></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function _renderWeeklyChart() {
   const el = document.getElementById('chart-weekly-svg');
   if (!el) return;
 
-  // Build 8-week buckets
   const weeks = [];
   for (let i = 7; i >= 0; i--) {
     const start = new Date();
@@ -6867,36 +6945,41 @@ function _renderWeeklyChart() {
     const end = new Date(start); end.setDate(end.getDate() + 7);
     const label = start.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
     const wi = inspections.filter(x => { const d = new Date(x.date); return d >= start && d < end; });
-    weeks.push({ label, count: wi.length, issues: wi.reduce((a, x) => a + x.sections.reduce((b, s) => b + s.items.filter(it => it.hasIssue).length, 0), 0) });
+    weeks.push({ label, total: wi.length, completed: wi.filter(x => x.status === 'completed').length, inProgress: wi.filter(x => x.status === 'in_progress').length });
   }
 
-  const maxVal = Math.max(...weeks.map(w => w.count), 1);
-  const W = 300, H = 130, pL = 22, pB = 28, pR = 6, pT = 10;
+  const maxVal = Math.max(...weeks.map(w => w.total), 1);
+  const W = 340, H = 160, pL = 26, pB = 30, pR = 8, pT = 12;
   const plotW = W - pL - pR, plotH = H - pT - pB;
   const slotW = plotW / weeks.length;
-  const barW = Math.max(slotW * 0.45, 6);
+  const groupW = slotW * 0.72;
+  const barW = Math.max((groupW / 2) - 1.5, 4);
 
-  const gridVals = [Math.round(maxVal * 0.5), maxVal];
-  const gridLines = gridVals.map(v => {
-    const y = pT + plotH - (v / maxVal) * plotH;
-    return `<line x1="${pL}" y1="${y.toFixed(1)}" x2="${W - pR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
-            <text x="${pL - 3}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--text3)">${v}</text>`;
-  }).join('');
+  let gridLines = '';
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const v = Math.round(f * maxVal);
+    const y = pT + plotH - f * plotH;
+    gridLines += `<line x1="${pL}" y1="${y.toFixed(1)}" x2="${W-pR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="${f===1?1:0.6}" stroke-dasharray="${f===1?'':'3 3'}"/>
+      <text x="${pL-4}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="var(--text3)">${v}</text>`;
+  });
 
   const bars = weeks.map((w, i) => {
     const cx = pL + i * slotW + slotW / 2;
-    const bh = Math.max((w.count / maxVal) * plotH, w.count > 0 ? 3 : 0);
-    const by = pT + plotH - bh;
+    const x0 = cx - groupW / 2;
+    const bhC = Math.max((w.completed / maxVal) * plotH, w.completed > 0 ? 2 : 0);
+    const bhP = Math.max((w.inProgress / maxVal) * plotH, w.inProgress > 0 ? 2 : 0);
+    const byC = pT + plotH - bhC, byP = pT + plotH - bhP;
     return `
-      <rect x="${(cx - barW / 2).toFixed(1)}" y="${by.toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="var(--green)" opacity="0.85"/>
-      ${w.count > 0 ? `<text x="${cx.toFixed(1)}" y="${(by - 3).toFixed(1)}" text-anchor="middle" font-size="8" fill="var(--text2)">${w.count}</text>` : ''}
-      <text x="${cx.toFixed(1)}" y="${(pT + plotH + 12).toFixed(1)}" text-anchor="middle" font-size="8" fill="var(--text3)">${w.label}</text>`;
+      <rect x="${x0.toFixed(1)}" y="${byC.toFixed(1)}" width="${barW.toFixed(1)}" height="${bhC.toFixed(1)}" rx="2" fill="var(--green)" opacity="0.85"/>
+      <rect x="${(x0+barW+2).toFixed(1)}" y="${byP.toFixed(1)}" width="${barW.toFixed(1)}" height="${bhP.toFixed(1)}" rx="2" fill="var(--warning)" opacity="0.75"/>
+      ${w.total > 0 ? `<text x="${cx.toFixed(1)}" y="${(Math.min(byC,byP)-3).toFixed(1)}" text-anchor="middle" font-size="8" fill="var(--text2)">${w.total}</text>` : ''}
+      <text x="${cx.toFixed(1)}" y="${(pT+plotH+13).toFixed(1)}" text-anchor="middle" font-size="7.5" fill="var(--text3)">${w.label}</text>`;
   }).join('');
 
   el.innerHTML = `<svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;display:block">
     ${gridLines}
-    <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT + plotH}" stroke="var(--border)" stroke-width="1"/>
-    <line x1="${pL}" y1="${pT + plotH}" x2="${W - pR}" y2="${pT + plotH}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${pL}" y1="${pT}" x2="${pL}" y2="${pT+plotH}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${pL}" y1="${pT+plotH}" x2="${W-pR}" y2="${pT+plotH}" stroke="var(--border)" stroke-width="1"/>
     ${bars}
   </svg>`;
 }
@@ -6958,14 +7041,18 @@ function _renderTopIssues() {
     return;
   }
   const peak = sorted[0][1];
-  el.innerHTML = sorted.map(([label, n], i) => `
-    <div style="${i < sorted.length - 1 ? 'margin-bottom:9px' : ''}">
-      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <div style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:6px">${escHtml(label)}</div>
-        <div style="font-size:11px;font-weight:700;flex-shrink:0">${n}×</div>
+  const totalIssueCount = Object.values(counts).reduce((a,b) => a+b, 0);
+  el.innerHTML = sorted.map(([label, n], i) => {
+    const pct = ((n/peak)*100).toFixed(0);
+    const share = totalIssueCount > 0 ? Math.round((n/totalIssueCount)*100) : 0;
+    return `<div style="${i < sorted.length-1 ? 'margin-bottom:10px' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">${escHtml(label)}</div>
+        <div style="font-size:12px;font-weight:700;flex-shrink:0">${n}<span style="font-size:9px;color:var(--text3);font-weight:600;margin-left:3px">${share}%</span></div>
       </div>
-      <div class="top-issue-bar"><div class="top-issue-bar-fill" style="width:${((n/peak)*100).toFixed(0)}%"></div></div>
-    </div>`).join('');
+      <div class="top-issue-bar"><div class="top-issue-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
 }
 
 // ===================== EXCEL EXPORT =====================
