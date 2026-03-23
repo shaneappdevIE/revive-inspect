@@ -3035,13 +3035,20 @@ function renderHomeLists() {
   const tabBtnArrow = document.getElementById('insp-tab-btn-arrow');
   if (tabBtnArrow) tabBtnArrow.innerHTML = ic('arrowRight', 16, 'var(--text3)');
 
+  const bothEmpty = !active.length && !completed.length;
+  const labelActive = document.getElementById('label-active-inspections');
+  const labelRecent = document.getElementById('label-recent-inspections');
+  if (labelActive) labelActive.style.display = bothEmpty ? 'none' : '';
+  if (labelRecent) labelRecent.style.display = bothEmpty ? 'none' : '';
+
   const aEl = document.getElementById('active-inspections-list');
+  aEl.style.cssText = bothEmpty ? 'flex:1;display:flex;align-items:center;justify-content:center' : '';
   aEl.innerHTML = active.length ? active.map(i => inspectionCardHTML(i)).join('') :
-    `<div class="empty-state" style="min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="empty-icon" id="empty-search"></div><div class="empty-title">No active inspections</div><div style="font-size:13px;color:var(--text3)">Use New Inspection to get started</div></div>`;
+    `<div class="empty-state"><div class="empty-icon" id="empty-search"></div><div class="empty-title">No active inspections</div><div style="font-size:13px;color:var(--text3)">Use New Inspection to get started</div></div>`;
 
   const rEl = document.getElementById('recent-inspections-list');
   rEl.innerHTML = completed.length ? completed.map(i => inspectionCardHTML(i)).join('') :
-    `<div class="empty-state"><div class="empty-icon" id="empty-check"></div><div class="empty-title">No completed inspections</div></div>`;
+    (bothEmpty ? '' : `<div class="empty-state"><div class="empty-icon" id="empty-check"></div><div class="empty-title">No completed inspections</div></div>`);
 
   // Also populate the home tab's recent list
   const homeRecent = document.getElementById('home-recent-list');
@@ -7616,7 +7623,7 @@ document.addEventListener('keydown', function(e) {
 
     <!-- INSPECTIONS TAB -->
     <div class="tab-content" id="tab-content-inspections">
-      <div class="scroll">
+      <div class="scroll" style="display:flex;flex-direction:column">
 
         <button onclick="showNewInspection()" style="background:var(--card);border:1.5px solid var(--green);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;width:100%;box-sizing:border-box;cursor:pointer;font-family:'Barlow',sans-serif;transition:all 0.15s;margin-bottom:16px" onmouseover="this.style.background='var(--card2)'" onmouseout="this.style.background='var(--card)'">
           <div style="width:42px;height:42px;border-radius:12px;background:rgba(29,185,84,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="insp-tab-btn-icon"></div>
@@ -7627,7 +7634,7 @@ document.addEventListener('keydown', function(e) {
           <div style="margin-left:auto;flex-shrink:0" id="insp-tab-btn-arrow"></div>
         </button>
 
-        <div class="section-label">Active Inspections</div>
+        <div class="section-label" id="label-active-inspections">Active Inspections</div>
         <div id="active-inspections-list">
           <div class="empty-state">
             <div class="empty-icon" id="empty-search"></div>
@@ -7636,7 +7643,7 @@ document.addEventListener('keydown', function(e) {
           </div>
         </div>
 
-        <div class="section-label" style="margin-top:20px">Recent Completed</div>
+        <div class="section-label" id="label-recent-inspections" style="margin-top:20px">Recent Completed</div>
         <div id="recent-inspections-list">
           <div class="empty-state">
             <div class="empty-icon" id="empty-check"></div>
