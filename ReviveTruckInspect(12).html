@@ -3030,6 +3030,9 @@ function renderHomeLists() {
     .sort((a, b) => new Date(b.completedAt || b.date) - new Date(a.completedAt || a.date))
     .slice(0, 3);
 
+  const tabBtnIcon = document.getElementById('insp-tab-btn-icon');
+  if (tabBtnIcon) tabBtnIcon.innerHTML = ic('plus', 22, '#fff');
+
   const aEl = document.getElementById('active-inspections-list');
   aEl.innerHTML = active.length ? active.map(i => inspectionCardHTML(i)).join('') :
     `<div class="empty-state"><div class="empty-icon" id="empty-search"></div><div class="empty-title">No active inspections</div><div style="font-size:13px;color:var(--text3)">Use New Inspection to get started</div></div>`;
@@ -7612,6 +7615,14 @@ document.addEventListener('keydown', function(e) {
     <!-- INSPECTIONS TAB -->
     <div class="tab-content" id="tab-content-inspections">
       <div class="scroll">
+
+        <button class="new-inspection-btn" onclick="showNewInspection()" style="margin-bottom:16px">
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0" id="insp-tab-btn-icon"></div>
+          <div>
+            <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:#fff">Start New Inspection</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px">Tap to begin a truck inspection</div>
+          </div>
+        </button>
 
         <div class="section-label">Active Inspections</div>
         <div id="active-inspections-list">
