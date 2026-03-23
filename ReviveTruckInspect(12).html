@@ -382,8 +382,7 @@
     .home-stats-row { gap: 14px; margin-bottom: 22px; }
     /* Admin screen also shifts right of sidebar when on desktop */
     #admin-screen.desktop-shifted { margin-left: 270px; }
-    /* Inspection/history/admin screens also shift */
-    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 270px; }
+    /* new-inspection / inspection / view screens are full-width — no sidebar on those screens */
   }
 
   /* ===== WIDE DESKTOP (≥1100px) ===== */
@@ -394,7 +393,6 @@
     .sidebar { width: 280px; }
     #main-content-area { margin-left: 280px; }
     #admin-screen.desktop-shifted { margin-left: 280px; }
-    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 280px; }
   }
 
   /* ===== EXTRA-WIDE DESKTOP (≥1400px) ===== */
@@ -402,7 +400,6 @@
     .sidebar { width: 300px; }
     #main-content-area { margin-left: 300px; }
     #admin-screen.desktop-shifted { margin-left: 300px; }
-    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 300px; }
     .scroll { padding: 36px max(36px, calc((100% - 1180px) / 2)); }
     #home-shortcuts-grid { grid-template-columns: repeat(4, 1fr) !important; }
     #home-greeting-text { font-size: 34px !important; }
@@ -3039,7 +3036,7 @@ function renderHomeLists() {
 
   const aEl = document.getElementById('active-inspections-list');
   aEl.innerHTML = active.length ? active.map(i => inspectionCardHTML(i)).join('') :
-    `<div class="empty-state"><div class="empty-icon" id="empty-search"></div><div class="empty-title">No active inspections</div><div style="font-size:13px;color:var(--text3)">Start a new inspection above</div></div>`;
+    `<div class="empty-state"><div class="empty-icon" id="empty-search"></div><div class="empty-title">No active inspections</div><div style="font-size:13px;color:var(--text3)">Use New Inspection to get started</div></div>`;
 
   const rEl = document.getElementById('recent-inspections-list');
   rEl.innerHTML = completed.length ? completed.map(i => inspectionCardHTML(i)).join('') :
@@ -7621,20 +7618,13 @@ document.addEventListener('keydown', function(e) {
     <!-- INSPECTIONS TAB -->
     <div class="tab-content" id="tab-content-inspections">
       <div class="scroll">
-        <button class="new-inspection-btn" onclick="showNewInspection()" id="new-inspection-btn">
-          <span class="new-insp-icon" id="new-insp-icon-span"></span>
-          <div>
-            <div class="new-insp-title" id="new-insp-btn-title">Start New Inspection</div>
-            <div class="new-insp-sub" id="new-insp-btn-sub">Tap to begin a truck inspection</div>
-          </div>
-        </button>
 
         <div class="section-label">Active Inspections</div>
         <div id="active-inspections-list">
           <div class="empty-state">
             <div class="empty-icon" id="empty-search"></div>
             <div class="empty-title">No active inspections</div>
-            <div style="font-size:13px;color:var(--text3)">Tap Start New Inspection above</div>
+            <div style="font-size:13px;color:var(--text3)">Use New Inspection to get started</div>
           </div>
         </div>
 
