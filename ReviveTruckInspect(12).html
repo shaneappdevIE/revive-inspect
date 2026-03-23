@@ -344,33 +344,66 @@
   /* ===== MAIN CONTENT WRAPPER ===== */
   #main-content-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
 
+  /* ===== DESKTOP-ONLY ELEMENTS (hidden on mobile) ===== */
+  .sidebar-logo { display: none; align-items: center; gap: 10px; padding: 18px 16px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .sidebar-logo img { width: 30px; height: 30px; object-fit: contain; border-radius: 6px; }
+  .sidebar-logo-text { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; }
+  .sidebar-logo-text span { color: var(--green); }
+  .dt-page-title { display: none; font-family: 'Rajdhani', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; align-items: center; }
+  .dt-new-btn { display: none; align-items: center; gap: 6px; background: var(--green); color: #000; border: none; border-radius: 10px; padding: 8px 16px; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: filter 0.15s, transform 0.15s; white-space: nowrap; flex-shrink: 0; }
+  .dt-new-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .dt-new-btn:active { transform: translateY(0); filter: brightness(1); }
+
   /* ===== DESKTOP LAYOUT (≥768px) ===== */
   @media (min-width: 768px) {
     /* Sidebar always visible — no slide animation */
-    .sidebar { transform: translateX(0) !important; transition: none !important; box-shadow: 2px 0 12px rgba(0,0,0,0.08); }
+    .sidebar { transform: translateX(0) !important; transition: none !important; box-shadow: none; border-right: 1px solid var(--border); }
     /* Overlay never shown on desktop */
     .sidebar-overlay { display: none !important; }
     /* Hide mobile-only controls */
     .sidebar-close-btn { display: none !important; }
     .sidebar-hamburger { display: none !important; }
+    /* Show desktop-only sidebar logo */
+    .sidebar-logo { display: flex; }
     /* Content area pushed right of sidebar */
     #main-content-area { margin-left: 270px; }
-    /* Spacious user bar */
-    .user-bar { padding: 10px 28px; }
+    /* Top bar: taller, proper header feel */
+    .user-bar { height: 58px; padding: 0 28px; border-bottom: 1px solid var(--border); }
+    /* Show desktop page title and quick-action button */
+    .dt-page-title { display: flex; }
+    .dt-new-btn { display: flex; margin-left: 20px; }
     /* Wider scroll padding */
-    .scroll { padding: 28px 36px; }
+    .scroll { padding: 28px 32px; }
     /* Quick access: 3-column grid */
     #home-shortcuts-grid { grid-template-columns: repeat(3, 1fr) !important; }
     /* Greeting larger */
-    #home-greeting-text { font-size: 32px !important; }
+    #home-greeting-text { font-size: 30px !important; }
     /* Stats row spacing */
-    .home-stats-row { gap: 16px; margin-bottom: 24px; }
-    /* Inspection cards: 2 columns on wider desktop */
-    @media (min-width: 1100px) {
-      #home-recent-list, #recent-inspections-list, #active-inspections-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    }
+    .home-stats-row { gap: 14px; margin-bottom: 22px; }
     /* Admin screen also shifts right of sidebar when on desktop */
     #admin-screen.desktop-shifted { margin-left: 270px; }
+    /* Inspection/history/admin screens also shift */
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 270px; }
+  }
+
+  /* ===== WIDE DESKTOP (≥1100px) ===== */
+  @media (min-width: 1100px) {
+    #home-recent-list, #recent-inspections-list, #active-inspections-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sidebar { width: 280px; }
+    #main-content-area { margin-left: 280px; }
+    #admin-screen.desktop-shifted { margin-left: 280px; }
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 280px; }
+  }
+
+  /* ===== EXTRA-WIDE DESKTOP (≥1400px) ===== */
+  @media (min-width: 1400px) {
+    .sidebar { width: 300px; }
+    #main-content-area { margin-left: 300px; }
+    #admin-screen.desktop-shifted { margin-left: 300px; }
+    #new-inspection-screen.active, #inspection-screen.active, #view-screen.active { margin-left: 300px; }
+    .scroll { padding: 36px max(36px, calc((100% - 1180px) / 2)); }
+    #home-shortcuts-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    #home-greeting-text { font-size: 34px !important; }
   }
 
   /* ===== INSPECTION SCREEN ===== */
@@ -2808,6 +2841,13 @@ function switchTab(tab) {
   if (tab === 'history') renderHistory();
   if (tab === 'settings') updateSettingsTab();
   if (tab === 'diagrams') renderDiagrams();
+  // Update desktop page title
+  const tabTitles = { home: 'Home', inspections: 'Inspections', history: 'History', settings: 'Settings', diagrams: 'Diagrams' };
+  const dtTitle = document.getElementById('dt-page-title');
+  if (dtTitle) dtTitle.textContent = tabTitles[tab] || tab;
+  // Show "New Inspection" button only on home/inspections tabs
+  const dtNewBtn = document.getElementById('dt-new-btn');
+  if (dtNewBtn) dtNewBtn.style.display = (tab === 'home' || tab === 'inspections') ? 'flex' : 'none';
 }
 
 function openSidebar() {
@@ -4578,6 +4618,9 @@ function initIcons() {
   if (tinsp) tinsp.innerHTML = ic('clipboard', 20);
   const thist = document.getElementById('snav-icon-history');
   if (thist) thist.innerHTML = ic('clock', 20);
+  // Desktop new inspection button icon
+  const dtni = document.getElementById('dt-new-icon');
+  if (dtni) dtni.innerHTML = ic('clipboard', 14, '#000');
   // Hamburger + close
   const hmb = document.getElementById('sidebar-menu-icon');
   if (hmb) hmb.innerHTML = ic('menu', 20, 'currentColor');
@@ -7326,6 +7369,11 @@ document.addEventListener('keydown', function(e) {
     <!-- SIDEBAR -->
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
     <div class="sidebar" id="sidebar">
+      <!-- Logo area — visible on desktop only -->
+      <div class="sidebar-logo">
+        <img src="images/logo.png" alt="Revive">
+        <div class="sidebar-logo-text"><span>Revive</span> Inspect</div>
+      </div>
       <div class="sidebar-header">
         <div class="user-avatar" id="sidebar-avatar" style="width:34px;height:34px;font-size:13px;flex-shrink:0">JM</div>
         <div style="min-width:0">
@@ -7361,9 +7409,15 @@ document.addEventListener('keydown', function(e) {
     </div>
 
     <div class="user-bar">
+      <!-- Mobile: hamburger menu -->
       <button class="sidebar-hamburger" id="sidebar-menu-btn" onclick="openSidebar()" aria-label="Open menu" style="margin-left:0;display:flex;align-items:center;gap:6px;padding:6px 8px">
         <span id="sidebar-menu-icon"></span>
         <span style="font-size:13px;font-weight:700;font-family:'Barlow',sans-serif;color:var(--text2);letter-spacing:0.2px">Menu</span>
+      </button>
+      <!-- Desktop: page title + quick action -->
+      <div id="dt-page-title" class="dt-page-title">Home</div>
+      <button class="dt-new-btn" onclick="showNewInspection()" id="dt-new-btn">
+        <span id="dt-new-icon"></span> New Inspection
       </button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <div class="sync-indicator sync-local" id="sync-indicator"><div class="sync-dot"></div><span id="sync-label">Local</span></div>
