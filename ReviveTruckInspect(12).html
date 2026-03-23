@@ -5894,6 +5894,7 @@ async function confirmAddDiagram() {
   if (!name) { if (nameEl) { nameEl.style.borderColor = 'var(--danger)'; nameEl.focus(); } return; }
   if (!file) { if (status) status.textContent = 'Please select a PDF file.'; return; }
   if (file.type !== 'application/pdf') { if (status) status.textContent = 'Only PDF files are supported.'; return; }
+  if (file.size > 4 * 1024 * 1024) { if (status) status.textContent = 'PDF must be under 4 MB. Try exporting at a lower quality or splitting the file.'; return; }
 
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
   if (progressWrap) progressWrap.style.display = 'block';
