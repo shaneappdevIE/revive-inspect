@@ -2403,7 +2403,7 @@ function escalateToDefect(inspId, sectionId, itemId) {
           <textarea id="defect-notes-input" class="input" placeholder="Any extra context for the person resolving this..." style="min-height:70px"></textarea>
         </div>
         <div style="display:flex;gap:10px">
-          <button class="btn btn-secondary" style="padding:14px 18px" onclick="document.getElementById('escalate-sheet').remove()">Cancel</button>
+          <button class="btn btn-secondary" style="width:auto;padding:14px 18px" onclick="document.getElementById('escalate-sheet').remove()">Cancel</button>
           <button class="btn btn-primary" style="flex:1" onclick="submitEscalateDefect('${inspId}','${sectionId}','${itemId}')">${ic('shield',16,'#000')} Create Defect</button>
         </div>
       </div>`;
