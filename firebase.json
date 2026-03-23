@@ -5,7 +5,8 @@
       ".claude",
       "firebase.json",
       ".firebaserc",
-      ".gitignore"
+      ".gitignore",
+      "cors.json"
     ],
     "rewrites": [
       {
