@@ -1404,7 +1404,7 @@
 // ===================== TRANSLATIONS =====================
 var currentLang = localStorage.getItem('revive_lang') || 'en';
 // Ensure only valid languages are used — fall back to English otherwise
-if (!['en','pt_br','ru','da'].includes(currentLang)) { currentLang = 'en'; }
+if (!['en','pt_br','ru','da','fr'].includes(currentLang)) { currentLang = 'en'; }
 
 var TRANSLATIONS = {
   en: {
@@ -1847,6 +1847,148 @@ var TRANSLATIONS = {
     admin_supervisor_mode: 'Режим руководителя',
     admin_supervisor_active: 'Активен — можно подписывать проверенные инспекции',
     admin_supervisor_inactive: 'Включите для подписания инспекций',
+  },
+
+  fr: {
+    welcome_company: 'Revive Environmental International',
+    welcome_title: 'Bienvenue dans le système d\'inspection <span>Revive</span>',
+    welcome_msg: 'La plateforme officielle d\'inspection des camions de l\'équipe Revive Environmental.',
+    welcome_btn: 'Se connecter →',
+    welcome_btn_register: 'Créer un compte',
+    sign_in_title: 'Connexion',
+    sign_in_sub: 'Bon retour — entrez vos informations pour continuer',
+    sign_in_btn: 'Se connecter',
+    create_account_title: 'Créer un compte',
+    create_account_sub: 'Entrez vos informations pour commencer',
+    create_account_btn: 'Créer un compte',
+    name_placeholder: 'Votre nom complet',
+    password_placeholder: 'Mot de passe',
+    confirm_password_placeholder: 'Confirmer le mot de passe',
+    select_team: 'Choisissez votre équipe',
+    no_account: 'Pas de compte ?',
+    have_account: 'Déjà un compte ?',
+    tab_home: 'Accueil',
+    tab_history: 'Historique',
+    tab_settings: 'Paramètres',
+    start_inspection: 'Démarrer une nouvelle inspection',
+    start_inspection_sub: 'Appuyez pour démarrer une inspection',
+    coming_soon: 'Inspections — bientôt disponible',
+    active_inspections: 'Inspections actives',
+    recent_completed: 'Récemment terminées',
+    no_active: 'Aucune inspection active',
+    no_active_sub: 'Démarrez une nouvelle inspection ci-dessus',
+    no_completed: 'Aucune inspection terminée',
+    this_week: 'Cette semaine',
+    completed: 'Terminé',
+    issues: 'Problèmes',
+    warrior_number: 'Numéro Warrior',
+    truck_type: 'Type de camion',
+    select_truck_type: 'Choisissez le type...',
+    begin_inspection: 'Démarrer l\'inspection',
+    complete_inspection: 'Terminer l\'inspection',
+    section_progress: 'Progression',
+    search_placeholder: 'Rechercher par camion ou inspecteur...',
+    filter_all: 'Tous',
+    filter_completed: 'Terminées',
+    filter_in_progress: 'En cours',
+    filter_has_issues: 'Avec problèmes',
+    filter_today: 'Aujourd\'hui',
+    filter_this_week: 'Cette semaine',
+    filter_this_month: 'Ce mois-ci',
+    no_results: 'Aucun résultat trouvé',
+    no_results_sub: 'Essayez une autre recherche ou un autre filtre',
+    no_inspections: 'Aucune inspection pour l\'instant',
+    no_inspections_sub: 'Les inspections terminées apparaîtront ici',
+    clear_filters: 'Réinitialiser les filtres',
+    settings_appearance: 'Apparence',
+    settings_theme: 'Thème',
+    settings_dark_mode: 'Mode sombre',
+    settings_light_mode: 'Mode clair',
+    settings_language: 'Langue',
+    settings_language_sub: 'Changer la langue de l\'application',
+    settings_account: 'Compte',
+    settings_sign_out: 'Se déconnecter',
+    settings_sign_out_sub: 'Retourner à l\'écran de connexion',
+    settings_admin: 'Administrateur',
+    settings_admin_panel: 'Panneau d\'administration',
+    settings_admin_sub: 'Voir toutes les inspections et statistiques',
+    settings_about: 'À propos',
+    settings_app_name: 'Revive Truck Inspect',
+    settings_share: 'Partager l\'application',
+    settings_share_sub: 'Scannez le QR code pour ouvrir sur un autre appareil',
+    status_completed: 'Terminé',
+    status_in_progress: 'En cours',
+    status_approved: 'Approuvé',
+    status_pending: 'En attente',
+    btn_save: 'Enregistrer',
+    btn_cancel: 'Annuler',
+    btn_delete: 'Supprimer',
+    btn_confirm: 'Confirmer',
+    btn_close: 'Fermer',
+    btn_print: 'Imprimer / Enregistrer en PDF',
+    btn_continue: 'Continuer l\'inspection',
+    btn_resolve: 'Résoudre',
+    btn_reopen: 'Rouvrir',
+    btn_approve: 'Approuver l\'inspection',
+    btn_got_it: 'Compris — allons-y !',
+    supervisor_signoff: 'Signature du superviseur',
+    supervisor_awaiting: 'En attente d\'approbation',
+    supervisor_approved: 'Approuvé',
+    supervisor_sign_here: 'Signez ici pour approuver',
+    supervisor_mode: 'Mode superviseur',
+    supervisor_active: 'MODE SUPERVISEUR ACTIF',
+    err_name_required: 'Veuillez entrer votre nom complet.',
+    err_team_required: 'Veuillez choisir votre équipe.',
+    err_password_short: 'Le mot de passe doit contenir au moins 6 caractères.',
+    err_password_match: 'Les mots de passe ne correspondent pas.',
+    err_no_account: 'Compte introuvable. Veuillez d\'abord créer un compte.',
+    err_wrong_password: 'Mot de passe incorrect. Réessayez.',
+    err_name_taken: 'Un compte avec ce nom existe déjà. Veuillez vous connecter.',
+    severity_minor: 'Mineur',
+    severity_major: 'Majeur',
+    severity_critical: 'Critique',
+    mark_issue: 'Signaler un problème',
+    mark_ok: 'Marquer OK',
+    add_note: 'Ajouter une note...',
+    add_photo: 'Ajouter une photo',
+    photo_required_title: 'Photos requises',
+    photo_required_body: 'Ces éléments nécessitent une photo avant de terminer :',
+    critical_warning_title: 'Problèmes critiques détectés',
+    critical_warning_body: 'Ce camion présente des défauts critiques — il ne peut pas être mis en service avant résolution.',
+    confirm_complete_title: 'Terminer l\'inspection ?',
+    confirm_complete_body: 'Cela terminera l\'inspection et demandera la signature du superviseur.',
+    confirm_complete_btn: 'Terminer et signer',
+    sign_clear: 'Effacer',
+    sign_submit: 'Soumettre l\'approbation',
+    offline_msg: 'Vous êtes hors ligne — les modifications seront synchronisées à la reconnexion',
+    settings_version: 'Version',
+    settings_whats_new: 'Nouveautés',
+    insp_truck: 'Camion',
+    insp_team: 'Équipe',
+    insp_date: 'Date',
+    insp_inspector: 'Inspecteur',
+    insp_duration: 'Durée',
+    insp_approved_by: 'Approuvé par',
+    admin_overview: 'Vue d\'ensemble',
+    admin_inspections: 'Inspections',
+    admin_users: 'Utilisateurs',
+    admin_settings_tab: 'Paramètres',
+    admin_statistics: 'Statistiques',
+    admin_analytics: 'Analytique',
+    admin_by_team: 'Par équipe',
+    admin_cloud_sync: 'Synchronisation cloud',
+    admin_user_accounts: 'Comptes utilisateurs',
+    admin_data_mgmt: 'Gestion des données',
+    admin_retention: 'Politique de conservation',
+    admin_audit_log: 'Journal d\'audit',
+    admin_teams: 'Équipes',
+    admin_templates: 'Modèles d\'inspection',
+    admin_export_excel: 'Exporter en Excel',
+    admin_export_json: 'Sauvegarde JSON',
+    admin_clear_data: 'Supprimer toutes les données',
+    admin_supervisor_mode: 'Mode superviseur',
+    admin_supervisor_active: 'Actif — peut signer les inspections vérifiées',
+    admin_supervisor_inactive: 'Activez pour signer les inspections',
   },
 
   da: {
@@ -7766,6 +7908,7 @@ document.addEventListener('keydown', function(e) {
         <button class="welcome-lang-btn" data-lang="pt_br" onclick="setLanguage('pt_br')"><span>🇧🇷</span><span class="wlb-label">Português</span></button>
         <button class="welcome-lang-btn" data-lang="ru" onclick="setLanguage('ru')"><span>🇷🇺</span><span class="wlb-label">Русский</span></button>
         <button class="welcome-lang-btn" data-lang="da" onclick="setLanguage('da')"><span>🇩🇰</span><span class="wlb-label">Dansk</span></button>
+        <button class="welcome-lang-btn" data-lang="fr" onclick="setLanguage('fr')"><span>🇫🇷</span><span class="wlb-label">Français</span></button>
       </div>
     </div>
     <div class="welcome-footer">Revive Environmental International · Thurles, Co. Tipperary</div>
@@ -7820,6 +7963,9 @@ document.addEventListener('keydown', function(e) {
           </button>
           <button class="lang-option" data-lang="da" onclick="setLanguage('da')" style="padding:6px 10px;flex-direction:row;gap:6px">
             <span class="lang-flag">🇩🇰</span><span class="lang-name">DA</span>
+          </button>
+          <button class="lang-option" data-lang="fr" onclick="setLanguage('fr')" style="padding:6px 10px;flex-direction:row;gap:6px">
+            <span class="lang-flag">🇫🇷</span><span class="lang-name">FR</span>
           </button>
         </div>
         <div class="qr-card" id="qr-card" style="margin-top:10px">
@@ -8159,6 +8305,10 @@ document.addEventListener('keydown', function(e) {
             <button class="lang-option" data-lang="da" onclick="setLanguage('da')">
               <span class="lang-flag">🇩🇰</span>
               <div><div class="lang-name">Danish</div><div class="lang-native">Dansk</div></div>
+            </button>
+            <button class="lang-option" data-lang="fr" onclick="setLanguage('fr')">
+              <span class="lang-flag">🇫🇷</span>
+              <div><div class="lang-name">French</div><div class="lang-native">Français</div></div>
             </button>
           </div>
         </div>
